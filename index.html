@@ -63,8 +63,9 @@
     <h2>Live Lesson</h2>
     <div id="chat" class="chat"></div>
     <div class="row">
-      <textarea id="input" rows="2" placeholder="Ask a doubt or answer the tutor…"></textarea>
-      <button class="ghost" onclick="send()">Send</button>
+     <textarea id="input" rows="2" placeholder="Ask a doubt or answer the tutor…"></textarea>
+     <button class="ghost" onclick="send()">Send</button>
+     <button class="ghost" onclick="startVoice()">🎤 Speak</button>
     </div>
     <div style="margin-top:8px">
       <span class="pill">Adaptive</span>
@@ -170,6 +171,35 @@ Adapt difficulty.
   chat.lastChild.remove();
   addMsg(data.choices[0].message.content,'ai');
   saveProgress();
+}
+let recognition;
+
+function startVoice() {
+  if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+    alert("Voice input not supported on this browser");
+    return;
+  }
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SpeechRecognition();
+
+  recognition.lang = "en-IN"; // Indian English
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+
+  addMsg("🎤 Listening... Speak now","ai");
+
+  recognition.start();
+
+  recognition.onresult = function(event) {
+    const voiceText = event.results[0][0].transcript;
+    input.value = voiceText;
+    send();
+  };
+
+  recognition.onerror = function() {
+    addMsg("❌ Sorry, I couldn't hear you clearly. Try again.","ai");
+  };
 }
 window.onload = loadProgress;
 </script>
