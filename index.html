@@ -97,39 +97,47 @@ function start(){
   Quick check: what do you already know about ${t}?`,'ai');
 }
 
-function send(){
+async function send(){
   if(!state.started) return;
   const v = input.value.trim();
   if(!v) return;
+
   addMsg(v,'user');
   input.value='';
 
-  const low = v.toLowerCase();
-  let reply = '';
-  if(state.depth===0){
-    if(low.includes('nothing') || low.includes('beginner')){
-      reply = `Perfect 👍 We’ll start from the basics with examples.<br/><br/>
-      📘 Lesson 1: Core idea of the topic and why it matters.<br/>
-      Would you like a simple example or a visual explanation?`;
-    } else {
-      reply = `Nice! Since you know some basics, we’ll move faster.<br/><br/>
-      📘 Lesson 1: Key concepts and common pitfalls.<br/>
-      Want a challenge problem or a real-world use case?`;
-    }
-    state.depth++;
-  } else {
-    if(low.includes('example')){
-      reply = `Here’s a simple example explained step-by-step.<br/>
-      After this, I’ll ask you a quick question to lock it in. Ready?`;
-    } else if(low.includes('challenge')){
-      reply = `🔥 Challenge time! Think about how you’d apply this in a real project.<br/>
-      Tell me your approach and I’ll give feedback.`;
-    } else {
-      reply = `Got it. I’ll adapt the explanation based on that.<br/>
-      Shall we go deeper or revise once more?`;
-    }
-  }
-  addMsg(reply,'ai');
+  const prompt = `
+You are a friendly AI tutor.
+Teach the user interactively.
+
+Topic: ${topic.value}
+Level: ${level.value}
+Goal: ${goal.value}
+
+User says: "${v}"
+
+Respond as a teacher.
+Ask questions.
+Adapt difficulty.
+`;
+
+  addMsg("🤖 Thinking...","ai");
+
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer YOUR_API_KEY_HERE"
+    },
+    body: JSON.stringify({
+      model: "gpt-4o-mini",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.7
+    })
+  });
+
+  const data = await res.json();
+  chat.lastChild.remove();
+  addMsg(data.choices[0].message.content,'ai');
 }
 </script>
 </body>
