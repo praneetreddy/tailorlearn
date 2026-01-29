@@ -1,0 +1,136 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>TailorLearn – Interactive AI Tutor (Sample)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<style>
+  body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; background:#0f172a; color:#e5e7eb; margin:0; }
+  .wrap { max-width: 920px; margin: 24px auto; padding: 16px; }
+  .card { background:#020617; border:1px solid #1f2937; border-radius:14px; padding:16px; margin-bottom:16px; }
+  h1,h2 { margin: 0 0 10px; }
+  label { font-size: 12px; color:#9ca3af; }
+  input, select, textarea, button {
+    width:100%; padding:12px; margin-top:8px; border-radius:10px;
+    border:1px solid #1f2937; background:#020617; color:#e5e7eb;
+  }
+  button.primary { background:#2563eb; border:none; }
+  button.ghost { background:#020617; }
+  .row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .chat { background:#020617; border:1px solid #1f2937; border-radius:14px; padding:12px; height:360px; overflow:auto; }
+  .msg { margin:10px 0; }
+  .ai { color:#93c5fd; }
+  .user { color:#a7f3d0; text-align:right; }
+  .pill { display:inline-block; padding:6px 10px; border-radius:999px; background:#020617; border:1px solid #1f2937; margin-right:6px; font-size:12px;}
+  .footer { color:#6b7280; font-size:12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1>🎓 TailorLearn — Interactive AI Tutor (Demo)</h1>
+    <p class="footer">This is a local demo that simulates personalized, adaptive teaching.</p>
+    <div class="row">
+      <div>
+        <label>Topic</label>
+        <input id="topic" placeholder="e.g., React, Python, Kubernetes" />
+      </div>
+      <div>
+        <label>Level</label>
+        <select id="level">
+          <option>Beginner</option>
+          <option>Intermediate</option>
+          <option>Advanced</option>
+        </select>
+      </div>
+      <div>
+        <label>Goal</label>
+        <input id="goal" placeholder="Interview / Project / Exam" />
+      </div>
+      <div>
+        <label>Language</label>
+        <select id="lang">
+          <option>English</option>
+          <option>English + Hindi</option>
+        </select>
+      </div>
+    </div>
+    <button class="primary" onclick="start()">Create My Course</button>
+  </div>
+
+  <div class="card">
+    <h2>Live Lesson</h2>
+    <div id="chat" class="chat"></div>
+    <div class="row">
+      <textarea id="input" rows="2" placeholder="Ask a doubt or answer the tutor…"></textarea>
+      <button class="ghost" onclick="send()">Send</button>
+    </div>
+    <div style="margin-top:8px">
+      <span class="pill">Adaptive</span>
+      <span class="pill">Interactive</span>
+      <span class="pill">Personalized</span>
+    </div>
+  </div>
+</div>
+
+<script>
+let state = { started:false, depth:0 };
+
+function addMsg(text, who='ai') {
+  const d = document.createElement('div');
+  d.className = 'msg ' + (who==='ai'?'ai':'user');
+  d.innerHTML = text.replace(/\n/g,'<br/>');
+  chat.appendChild(d);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function start(){
+  state.started = true;
+  state.depth = 0;
+  chat.innerHTML='';
+  const t = topic.value || 'your topic';
+  const l = level.value;
+  const g = goal.value || 'your goal';
+  addMsg(`👋 Hi! I’m your AI tutor.<br/>
+  We’ll learn <b>${t}</b> at a <b>${l}</b> level, focused on <b>${g}</b>.<br/><br/>
+  Quick check: what do you already know about ${t}?`,'ai');
+}
+
+function send(){
+  if(!state.started) return;
+  const v = input.value.trim();
+  if(!v) return;
+  addMsg(v,'user');
+  input.value='';
+
+  const low = v.toLowerCase();
+  let reply = '';
+  if(state.depth===0){
+    if(low.includes('nothing') || low.includes('beginner')){
+      reply = `Perfect 👍 We’ll start from the basics with examples.<br/><br/>
+      📘 Lesson 1: Core idea of the topic and why it matters.<br/>
+      Would you like a simple example or a visual explanation?`;
+    } else {
+      reply = `Nice! Since you know some basics, we’ll move faster.<br/><br/>
+      📘 Lesson 1: Key concepts and common pitfalls.<br/>
+      Want a challenge problem or a real-world use case?`;
+    }
+    state.depth++;
+  } else {
+    if(low.includes('example')){
+      reply = `Here’s a simple example explained step-by-step.<br/>
+      After this, I’ll ask you a quick question to lock it in. Ready?`;
+    } else if(low.includes('challenge')){
+      reply = `🔥 Challenge time! Think about how you’d apply this in a real project.<br/>
+      Tell me your approach and I’ll give feedback.`;
+    } else {
+      reply = `Got it. I’ll adapt the explanation based on that.<br/>
+      Shall we go deeper or revise once more?`;
+    }
+  }
+  addMsg(reply,'ai');
+}
+</script>
+</body>
+</html>
