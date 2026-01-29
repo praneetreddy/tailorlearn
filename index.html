@@ -75,6 +75,34 @@
 </div>
 
 <script>
+
+function saveProgress() {
+  const data = {
+    topic: topic.value,
+    level: level.value,
+    goal: goal.value,
+    chat: chat.innerHTML,
+    state: state
+  };
+  localStorage.setItem("tailorlearn-progress", JSON.stringify(data));
+}
+
+function loadProgress() {
+  const data = localStorage.getItem("tailorlearn-progress");
+  if (!data) return;
+
+  const saved = JSON.parse(data);
+  topic.value = saved.topic || "";
+  level.value = saved.level || "Beginner";
+  goal.value = saved.goal || "";
+  chat.innerHTML = saved.chat || "";
+  state = saved.state || { started: false, depth: 0 };
+
+  if (state.started) {
+    addMsg("👋 Welcome back! Continuing from where we left off.","ai");
+  }
+}
+  
 let state = { started:false, depth:0 };
 
 function addMsg(text, who='ai') {
@@ -84,17 +112,20 @@ function addMsg(text, who='ai') {
   chat.appendChild(d);
   chat.scrollTop = chat.scrollHeight;
 }
-
 function start(){
   state.started = true;
   state.depth = 0;
   chat.innerHTML='';
+
   const t = topic.value || 'your topic';
   const l = level.value;
   const g = goal.value || 'your goal';
+
   addMsg(`👋 Hi! I’m your AI tutor.<br/>
   We’ll learn <b>${t}</b> at a <b>${l}</b> level, focused on <b>${g}</b>.<br/><br/>
   Quick check: what do you already know about ${t}?`,'ai');
+
+  saveProgress();
 }
 
 async function send(){
@@ -138,7 +169,9 @@ Adapt difficulty.
   const data = await res.json();
   chat.lastChild.remove();
   addMsg(data.choices[0].message.content,'ai');
+  saveProgress();
 }
+window.onload = loadProgress;
 </script>
 </body>
 </html>
