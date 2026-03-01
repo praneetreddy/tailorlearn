@@ -21,6 +21,7 @@
   .pill { display:inline-block; padding:6px 10px; border-radius:999px; background:#020617; border:1px solid #1f2937; margin-right:6px; font-size:12px;}
   .footer { color:#6b7280; font-size:12px; margin-top:8px; }
   .step-card { border:1px solid #2563eb; padding:10px; border-radius:12px; margin-bottom:6px; background:#0e1728; cursor:pointer; }
+  .example { margin-top:6px; padding:6px 10px; border-radius:10px; border:1px solid #3b82f6; background:#111b32; display:none; font-size:14px; }
   #landing button.primary:hover { background:#1e40af; }
 </style>
 </head>
@@ -124,16 +125,48 @@ function loadProgress() {
   }
 }
 
+// Add a chat message with micro-cards and expandable examples
 function addMsg(text, who='ai') {
   const d = document.createElement('div');
   d.className = 'msg ' + (who==='ai'?'ai':'user');
 
-  // Micro-card split for numbered steps
   const steps = text.split(/\n(?=\d+\.)/);
-  steps.forEach(step => {
+  steps.forEach((step, index) => {
     const card = document.createElement('div');
     card.className = 'step-card';
     card.innerHTML = step.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+
+    // Example container
+    const exampleDiv = document.createElement('div');
+    exampleDiv.className = 'example';
+    exampleDiv.id = `example-${Math.random().toString(36).substring(2,9)}`;
+    card.appendChild(exampleDiv);
+
+    // Show Example button
+    const btn = document.createElement('button');
+    btn.className = 'ghost';
+    btn.innerText = '💡 Show Example';
+    btn.style.marginTop='6px';
+    btn.onclick = async () => {
+      btn.disabled = true;
+      btn.innerText = '⏳ Loading...';
+      try {
+        const res = await fetch("https://tailorlearn-backend.onrender.com/chat", {
+          method:"POST",
+          headers:{ "Content-Type":"application/json" },
+          body: JSON.stringify({ message: `Give me an example for: ${step}`, interview:true })
+        });
+        const data = await res.json();
+        exampleDiv.style.display='block';
+        exampleDiv.innerHTML = data.reply;
+        btn.innerText = '💡 Show Example';
+      } catch(e) {
+        exampleDiv.style.display='block';
+        exampleDiv.innerHTML = '❌ Failed to load example.';
+        btn.innerText = '💡 Show Example';
+      }
+    };
+    card.appendChild(btn);
     d.appendChild(card);
   });
 
@@ -153,6 +186,7 @@ function startLearning() {
   saveProgress();
 }
 
+// Send message to AI backend
 async function send() {
   const v = input.value.trim();
   if(!v) return;
@@ -161,14 +195,10 @@ async function send() {
 
   try {
     const res = await fetch("https://tailorlearn-backend.onrender.com/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ 
-        message: v,
-        interview: state.interview
-      })
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ message: v, interview: state.interview })
     });
-
     const data = await res.json();
     addMsg(data.reply,'ai');
     currentLesson = data.reply;
@@ -178,7 +208,7 @@ async function send() {
   }
 }
 
-// Voice Input
+// Voice input
 let recognition;
 function startVoice() {
   if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
@@ -203,7 +233,7 @@ function startVoice() {
   }
 }
 
-// AI TTS
+// Text-to-Speech
 function speakText(text) {
   if (!('speechSynthesis' in window)) {
     alert("Text-to-Speech not supported on this browser.");
