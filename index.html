@@ -23,79 +23,28 @@
   .user { color:#a7f3d0; text-align:right; }
   .pill { display:inline-block; padding:6px 10px; border-radius:999px; background:#020617; border:1px solid #1f2937; margin-right:6px; font-size:12px;}
   .footer { color:#6b7280; font-size:12px; margin-top:8px; }
-  #landing button.primary:hover { background:#1e40af; }
 </style>
 </head>
 <body>
 
-<!-- LANDING PAGE -->
-<div id="landing" style="
-  min-height:100vh;
-  background:linear-gradient(135deg,#020617,#020617 40%,#1e3a8a);
-  color:#e5e7eb;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:24px;
-">
+<div id="landing" style="min-height:100vh;background:linear-gradient(135deg,#020617,#020617 40%,#1e3a8a);display:flex;align-items:center;justify-content:center;padding:24px;">
   <div style="max-width:900px;text-align:center;">
     <h1 style="font-size:2.2rem;margin-bottom:12px;">
       Your Personal AI Tutor.<br/>Courses Made Just For You.
     </h1>
-
     <p style="font-size:1.1rem;color:#c7d2fe;margin-bottom:20px;">
-      Tell us what you want to learn.  
-      We create interactive lessons, explain in your style,  
-      and adapt as you learn — in real time.
+      Interactive, personalized learning powered by real AI.
     </p>
-
-    <div style="margin-bottom:24px;">
-      <span class="pill">Personalized</span>
-      <span class="pill">Interactive</span>
-      <span class="pill">AI-Powered</span>
-    </div>
-
-    <button 
-      onclick="startLearning()"
-      style="
-        background:#2563eb;
-        color:white;
-        padding:14px 24px;
-        font-size:16px;
-        border:none;
-        border-radius:12px;
-        cursor:pointer;
-        width:100%;
-        max-width:260px;
-      ">
+    <button onclick="startLearning()" style="background:#2563eb;color:white;padding:14px 24px;font-size:16px;border:none;border-radius:12px;cursor:pointer;max-width:260px;width:100%;">
       🚀 Start Learning Free
     </button>
-
-    <p style="font-size:12px;color:#9ca3af;margin-top:16px;">
-      No signup • No ads • Learn your way
-    </p>
   </div>
 </div>
 
-<!-- MAIN APP -->
 <div class="wrap" id="app">
 
-  <!-- AI Video Teacher -->
-  <div id="ai-video" style="text-align:center;margin-bottom:16px;">
-    <img src="https://i.ibb.co/3N1R9qJ/ai-avatar.png" alt="AI Tutor"
-         style="width:120px;height:120px;border-radius:50%;border:3px solid #2563eb;margin-bottom:8px;">
-    <div>
-      <button class="ghost" onclick="speakText(currentLesson)"
-              style="padding:8px 12px;border-radius:10px;margin-top:4px;">
-        🔊 Play AI Voice
-      </button>
-    </div>
-  </div>
-
-  <!-- Course Setup -->
   <div class="card">
-    <h1>🎓 TailorLearn — Interactive AI Tutor</h1>
-    <p class="footer">This is a mobile-friendly demo that simulates personalized, adaptive teaching.</p>
+    <h1>🎓 TailorLearn — Real AI Tutor</h1>
     <div class="row">
       <div>
         <label>Topic</label>
@@ -124,64 +73,23 @@
     <button class="primary" onclick="start()">Create My Course</button>
   </div>
 
-  <!-- Chat Section -->
   <div class="card">
     <h2>Live Lesson</h2>
     <div id="chat" class="chat"></div>
     <div class="row">
       <textarea id="input" rows="2" placeholder="Ask a doubt or answer the tutor…"></textarea>
       <button class="ghost" onclick="send()">Send</button>
-      <button class="ghost" onclick="startVoice()">🎤 Speak</button>
-    </div>
-    <div style="margin-top:8px">
-      <span class="pill">Adaptive</span>
-      <span class="pill">Interactive</span>
-      <span class="pill">Personalized</span>
     </div>
   </div>
 
 </div>
 
 <script>
-/* ------------------------
-  Memory / Progress Save
----------------------------*/
-let state = { started:false, depth:0 };
+let state = { started:false };
 let currentLesson = "";
 
-function saveProgress() {
-  const data = {
-    topic: topic.value,
-    level: level.value,
-    goal: goal.value,
-    chat: chat.innerHTML,
-    state: state
-  };
-  localStorage.setItem("tailorlearn-progress", JSON.stringify(data));
-}
-
-function loadProgress() {
-  const data = localStorage.getItem("tailorlearn-progress");
-  if (!data) return;
-
-  const saved = JSON.parse(data);
-  topic.value = saved.topic || "";
-  level.value = saved.level || "Beginner";
-  goal.value = saved.goal || "";
-  chat.innerHTML = saved.chat || "";
-  state = saved.state || { started: false, depth: 0 };
-
-  if (state.started) {
-    addMsg("👋 Welcome back! Continuing from where we left off.","ai");
-    document.getElementById("landing").style.display = "none";
-    document.getElementById("app").style.display = "block";
-  }
-}
-
-/* ------------------------
-  Chat / AI Tutor
----------------------------*/
 function addMsg(text, who='ai') {
+  const chat = document.getElementById("chat");
   const d = document.createElement('div');
   d.className = 'msg ' + (who==='ai'?'ai':'user');
   d.innerHTML = text.replace(/\n/g,'<br/>');
@@ -189,117 +97,62 @@ function addMsg(text, who='ai') {
   chat.scrollTop = chat.scrollHeight;
 }
 
-function start() {
-  state.started = true;
-  state.depth = 0;
-  chat.innerHTML='';
-
-  const t = topic.value || 'your topic';
-  const l = level.value;
-  const g = goal.value || 'your goal';
-
-  addMsg(`👋 Hi! I’m your AI tutor.<br/>
-  We’ll learn <b>${t}</b> at a <b>${l}</b> level, focused on <b>${g}</b>.<br/><br/>
-  Quick check: what do you already know about ${t}?`,'ai');
-
-  saveProgress();
-}
-
-function send() {
-  if(!state.started) return;
-  const v = input.value.trim();
-  if(!v) return;
-  addMsg(v,'user');
-  input.value='';
-
-  // Simple adaptive logic
-  let reply='';
-  const low = v.toLowerCase();
-  if(state.depth===0){
-    if(low.includes('nothing') || low.includes('beginner')){
-      reply = `Perfect 👍 We’ll start from the basics with examples.<br/><br/>
-      📘 Lesson 1: Core idea of the topic and why it matters.<br/>
-      Would you like a simple example or a visual explanation?`;
-    } else {
-      reply = `Nice! Since you know some basics, we’ll move faster.<br/><br/>
-      📘 Lesson 1: Key concepts and common pitfalls.<br/>
-      Want a challenge problem or a real-world use case?`;
-    }
-    state.depth++;
-  } else {
-    if(low.includes('example')){
-      reply = `Here’s a simple example explained step-by-step.<br/>
-      After this, I’ll ask you a quick question to lock it in. Ready?`;
-    } else if(low.includes('challenge')){
-      reply = `🔥 Challenge time! Think about how you’d apply this in a real project.<br/>
-      Tell me your approach and I’ll give feedback.`;
-    } else {
-      reply = `Got it. I’ll adapt the explanation based on that.<br/>
-      Shall we go deeper or revise once more?`;
-    }
-  }
-
-  addMsg(reply,'ai');
-  currentLesson = reply;
-  saveProgress();
-  // Optional: speak automatically
-  // speakText(currentLesson);
-}
-
-/* ------------------------
-  Voice Input
----------------------------*/
-let recognition;
-function startVoice() {
-  if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-    alert("Voice input not supported on this browser");
-    return;
-  }
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  recognition = new SpeechRecognition();
-  recognition.lang = "en-IN";
-  recognition.interimResults = false;
-  recognition.maxAlternatives = 1;
-  addMsg("🎤 Listening... Speak now","ai");
-  recognition.start();
-
-  recognition.onresult = function(event) {
-    const voiceText = event.results[0][0].transcript;
-    input.value = voiceText;
-    send();
-  };
-  recognition.onerror = function() {
-    addMsg("❌ Sorry, I couldn't hear you clearly. Try again.","ai");
-  }
-}
-
-/* ------------------------
-  AI Video Teacher TTS
----------------------------*/
-function speakText(text) {
-  if (!('speechSynthesis' in window)) {
-    alert("Text-to-Speech not supported on this browser.");
-    return;
-  }
-  if(!text) text = "Welcome! I am your AI tutor. Let's learn together!";
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = "en-US";
-  utterance.rate = 1;
-  speechSynthesis.speak(utterance);
-}
-
-/* ------------------------
-  Landing Page Logic
----------------------------*/
 function startLearning() {
   document.getElementById("landing").style.display = "none";
   document.getElementById("app").style.display = "block";
 }
 
-/* ------------------------
-  Initialize
----------------------------*/
-window.onload = loadProgress;
+function start() {
+  state.started = true;
+  const t = topic.value || "the selected topic";
+  const l = level.value;
+  const g = goal.value || "your goal";
+
+  addMsg(`👋 Hi! I’m your AI tutor.
+We’ll learn ${t} at ${l} level, focused on ${g}.
+Tell me what you already know about this topic.`);
+}
+
+async function send() {
+  if(!state.started) return;
+
+  const inputBox = document.getElementById("input");
+  const message = inputBox.value.trim();
+  if(!message) return;
+
+  addMsg(message,'user');
+  inputBox.value = '';
+
+  addMsg("⏳ Thinking...", "ai");
+
+  try {
+    const response = await fetch("https://tailorlearn-backend.onrender.com/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        message: message,
+        topic: topic.value,
+        level: level.value,
+        goal: goal.value,
+        language: lang.value
+      })
+    });
+
+    const data = await response.json();
+
+    document.getElementById("chat").lastChild.remove();
+
+    addMsg(data.reply, "ai");
+    currentLesson = data.reply;
+
+  } catch (error) {
+    document.getElementById("chat").lastChild.remove();
+    addMsg("❌ Failed to connect to AI server.", "ai");
+  }
+}
 </script>
+
 </body>
 </html>
