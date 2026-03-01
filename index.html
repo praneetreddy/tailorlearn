@@ -68,6 +68,7 @@
 let state={started:false, depth:0};
 let currentLesson="";
 let recognition;
+let voiceOnlyModeActive = false;
 
 // --- Landing ---
 function startLearning(){
@@ -80,9 +81,9 @@ function startCourse(){
   state.started=true;
   state.depth=0;
   document.getElementById("chat").innerHTML='';
-  const t=topic.value||'your topic';
-  const l=level.value;
-  const g=goal.value||'your goal';
+  const t=document.getElementById("topic").value||'your topic';
+  const l=document.getElementById("level").value;
+  const g=document.getElementById("goal").value||'your goal';
   addMsg(`👋 Hi! I’m your AI tutor.<br/>We’ll learn <b>${t}</b> at <b>${l}</b> level, focused on <b>${g}</b>. What do you know about this?`, "ai");
 }
 
@@ -91,20 +92,21 @@ function addMsg(text, who='ai'){
   const d=document.createElement('div');
   d.className='msg '+(who==='ai'?'ai':'user');
   d.innerHTML=text.replace(/\n/g,'<br/>');
-  chat.appendChild(d);
-  chat.scrollTop=chat.scrollHeight;
+  document.getElementById("chat").appendChild(d);
+  document.getElementById("chat").scrollTop=document.getElementById("chat").scrollHeight;
 }
 
 async function sendMessage(){
-  const v=input.value.trim();
+  const inputElem=document.getElementById("input");
+  const v=inputElem.value.trim();
   if(!v) return;
   addMsg(v,'user');
-  input.value='';
+  inputElem.value='';
 
   try{
     const res=await fetch("https://tailorlearn-backend.onrender.com/chat", {
       method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ message:v, interview:goal.value.toLowerCase().includes('interview') })
+      body: JSON.stringify({ message:v, interview:document.getElementById("goal").value.toLowerCase().includes('interview') })
     });
     const data=await res.json();
     addMsg(data.reply,'ai');
@@ -123,7 +125,7 @@ function startVoice(){
   addMsg("🎤 Listening... Speak now","ai");
   recognition.start();
   recognition.onresult = function(event){
-    input.value=event.results[0][0].transcript;
+    document.getElementById("input").value = event.results[0][0].transcript;
     sendMessage();
   }
   recognition.onerror=function(){ addMsg("❌ Could not hear you clearly.","ai"); }
@@ -131,15 +133,17 @@ function startVoice(){
 
 // --- Voice-only AI Mode ---
 function openVoiceMode(){
+  voiceOnlyModeActive = true;
   document.getElementById("app").style.display="none";
   document.getElementById("voice-only-mode").style.display="block";
   startContinuousVoiceAI();
 }
 
 function exitVoiceMode(){
+  voiceOnlyModeActive = false;
+  if(recognition) recognition.stop();
   document.getElementById("voice-only-mode").style.display="none";
   document.getElementById("app").style.display="block";
-  if(recognition) recognition.stop();
 }
 
 async function startContinuousVoiceAI(){
@@ -148,10 +152,9 @@ async function startContinuousVoiceAI(){
   recognition=new SpeechRecognition();
   recognition.lang="en-IN"; recognition.interimResults=false; recognition.maxAlternatives=1;
 
-  addVoiceMsg("🎤 Listening... Speak now","ai");
   recognition.start();
-
   recognition.onresult = async function(event){
+    if(!voiceOnlyModeActive) return;
     const voiceText = event.results[0][0].transcript;
     addVoiceMsg(voiceText,'user');
 
@@ -163,15 +166,19 @@ async function startContinuousVoiceAI(){
       const chatData = await chatRes.json();
       addVoiceMsg(chatData.reply,"ai");
 
-      // Send to D-ID video
+      // Call D-ID for video
       const videoRes=await fetch("https://tailorlearn-backend.onrender.com/talk-video", {
         method:"POST", headers:{"Content-Type":"application/json"},
         body: JSON.stringify({ text: chatData.reply, avatar:"male" })
       });
       const videoData = await videoRes.json();
       const video=document.getElementById("ai-video-player");
-      video.src=videoData.videoUrl;
-      document.getElementById("ai-video-text").innerText=chatData.reply;
+      if(videoData.videoUrl){
+        video.src = videoData.videoUrl;
+        document.getElementById("ai-video-text").innerText = chatData.reply;
+      } else {
+        document.getElementById("ai-video-text").innerText = "❌ AI video not available";
+      }
 
     } catch(e){
       addVoiceMsg("❌ Failed to connect to AI server.","ai");
@@ -180,15 +187,17 @@ async function startContinuousVoiceAI(){
     if(voiceOnlyModeActive) recognition.start();
   };
 
-  recognition.onerror=function(){ addVoiceMsg("❌ Could not hear you. Retrying...","ai"); if(voiceOnlyModeActive) recognition.start(); }
+  recognition.onerror=function(){ 
+    addVoiceMsg("❌ Could not hear you. Retrying...","ai"); 
+    if(voiceOnlyModeActive) recognition.start(); 
+  }
 }
 
 function addVoiceMsg(text,who='ai'){
   const chatDiv=document.getElementById("ai-video-text");
-  chatDiv.innerHTML+="<div style='margin:6px 0; color:"+(who==='ai'?'#93c5fd':'#a7f3d0')+"'>"+text+"</div>";
+  const color = (who==='ai') ? '#93c5fd' : '#a7f3d0';
+  chatDiv.innerHTML+="<div style='margin:6px 0; color:"+color+"'>"+text+"</div>";
 }
-
-let voiceOnlyModeActive = true;
 </script>
 </body>
 </html>
