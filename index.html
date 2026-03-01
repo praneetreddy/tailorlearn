@@ -2,223 +2,84 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>TailorLearn – AI Tutor</title>
+<title>TailorLearn – Talk to AI</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-  body { font-family: system-ui, background:#0f172a; color:#e5e7eb; margin:0; }
-  .wrap { max-width: 920px; margin: 24px auto; padding: 16px; display:none; }
-  .card { background:#020617; border:1px solid #1f2937; border-radius:14px; padding:16px; margin-bottom:16px; }
-  h1,h2 { margin: 0 0 10px; }
-  label { font-size: 12px; color:#9ca3af; }
-  input, select, textarea, button {
-    width:100%; padding:12px; margin-top:8px; border-radius:10px;
-    border:1px solid #1f2937; background:#020617; color:#e5e7eb;
-  }
-  button.primary { background:#2563eb; border:none; color:white; font-weight:bold; cursor:pointer; }
-  button.ghost { background:#020617; }
-  .row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:8px; }
-  .chat { background:#020617; border:1px solid #1f2937; border-radius:14px; padding:12px; height:360px; overflow:auto; }
-  .msg { margin:10px 0; }
-  .ai { color:#93c5fd; }
-  .user { color:#a7f3d0; text-align:right; }
-  .pill { display:inline-block; padding:6px 10px; border-radius:999px; background:#020617; border:1px solid #1f2937; margin-right:6px; font-size:12px;}
-  .footer { color:#6b7280; font-size:12px; margin-top:8px; }
-  #talkSection { display:none; text-align:center; padding:20px; }
-  #avatar { width:120px; border-radius:50%; border:3px solid #2563eb; margin-bottom:12px; }
-  #video { width:320px; margin-top:12px; border-radius:14px; border:1px solid #1f2937; }
+  body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; background:#0f172a; color:#e5e7eb; margin:0; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; }
+  #talk-section { display:none; flex-direction:column; align-items:center; gap:16px; }
+  #avatar { width:180px; height:180px; border-radius:50%; border:3px solid #2563eb; }
+  #video { width:320px; height:240px; border-radius:12px; background:#000; }
+  button { padding:12px 24px; border:none; border-radius:10px; background:#2563eb; color:white; font-weight:bold; cursor:pointer; }
+  textarea { width:320px; height:80px; border-radius:10px; padding:8px; border:1px solid #1f2937; background:#020617; color:#e5e7eb; resize:none; margin-top:8px; }
+  #loading { color:#facc15; display:none; font-weight:bold; }
 </style>
 </head>
 <body>
 
-<!-- LANDING PAGE -->
-<div id="landing" style="min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; flex-direction:column;">
-  <h1 style="font-size:2.2rem;margin-bottom:12px;">Your Personal AI Tutor.<br/>Courses Made Just For You.</h1>
-  <button onclick="startLearning()" style="padding:14px 24px; font-size:16px; border-radius:12px; background:#2563eb; color:white; border:none; cursor:pointer;">🚀 Start Learning Free</button>
-</div>
+<button id="start-btn">🎤 Talk to AI</button>
 
-<!-- MAIN APP -->
-<div class="wrap" id="app">
-
-  <!-- AI Video Teacher Section -->
-  <div class="card" id="talkSection">
-    <img id="avatar" src="https://i.ibb.co/3N1R9qJ/ai-avatar.png" alt="AI Avatar">
-    <div id="status">👋 Hi! I am your AI tutor. Click Speak to start.</div>
-    <video id="video" controls autoplay></video>
-    <textarea id="message" rows="2" placeholder="Type your message here…">Hello! This is your AI tutor.</textarea>
-    <button onclick="generateVideo()">🎤 Speak</button>
-  </div>
-
-  <!-- Course Setup -->
-  <div class="card">
-    <h1>🎓 TailorLearn — Interactive AI Tutor</h1>
-    <div class="row">
-      <div>
-        <label>Topic</label>
-        <input id="topic" placeholder="e.g., React, Python, Kubernetes" />
-      </div>
-      <div>
-        <label>Level</label>
-        <select id="level">
-          <option>Beginner</option>
-          <option>Intermediate</option>
-          <option>Advanced</option>
-        </select>
-      </div>
-      <div>
-        <label>Goal</label>
-        <input id="goal" placeholder="Interview / Project / Exam" />
-      </div>
-      <div>
-        <label>Language</label>
-        <select id="lang">
-          <option>English</option>
-          <option>English + Hindi</option>
-        </select>
-      </div>
-    </div>
-    <button class="primary" onclick="startCourse()">Create My Course</button>
-    <button class="ghost" onclick="openTalk()">Talk to AI</button>
-  </div>
-
-  <!-- Chat Section -->
-  <div class="card">
-    <h2>Live Lesson</h2>
-    <div id="chat" class="chat"></div>
-    <div class="row">
-      <textarea id="input" rows="2" placeholder="Ask a doubt or answer the tutor…"></textarea>
-      <button class="ghost" onclick="send()">Send</button>
-      <button class="ghost" onclick="startVoice()">🎤 Speak</button>
-    </div>
-  </div>
-
+<div id="talk-section">
+  <img id="avatar" src="https://i.ibb.co/3N1R9qJ/ai-avatar.png" alt="AI Avatar">
+  <div id="loading">Generating AI Response...</div>
+  <video id="video" controls autoplay></video>
+  <textarea id="response-text" placeholder="AI steps / messages will appear here..." readonly></textarea>
 </div>
 
 <script>
-const backend = "https://tailorlearn-backend.onrender.com";
-const presenterId = "v2_public_Adam@0GLJgELXjc"; // male presenter
+const startBtn = document.getElementById('start-btn');
+const talkSection = document.getElementById('talk-section');
+const video = document.getElementById('video');
+const responseText = document.getElementById('response-text');
+const loading = document.getElementById('loading');
 
-/* Landing -> Main */
-function startLearning(){
-  document.getElementById("landing").style.display = "none";
-  document.getElementById("app").style.display = "block";
-}
+// Backend URL
+const BACKEND_URL = "https://tailorlearn-backend.onrender.com";
 
-/* Open Talk Section */
-function openTalk(){
-  document.getElementById("talkSection").style.display = "block";
-  speakText("Hi! I am your AI tutor.");
-}
+startBtn.onclick = async () => {
+  startBtn.style.display = 'none';
+  talkSection.style.display = 'flex';
 
-/* TTS Fallback */
-function speakText(text){
-  if('speechSynthesis' in window){
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = "en-US"; u.rate = 1;
-    speechSynthesis.speak(u);
-  }
-}
+  const message = "Hi! I am your AI tutor. Let's talk.";
+  const presenter = "v2_public_Amber@0zSz8kflCN"; // female avatar
 
-/* ------------------------
-  AI Video Generation
----------------------------*/
-async function generateVideo(){
-  const msg = document.getElementById("message").value;
-  document.getElementById("status").innerText = "🎬 Preparing AI video...";
+  // Speak via TTS while video is generating
+  const utterance = new SpeechSynthesisUtterance(message);
+  utterance.lang = "en-US";
+  speechSynthesis.speak(utterance);
 
   try {
-    const res = await fetch(`${backend}/talk-video`, {
-      method:"POST",
-      headers: { "Content-Type":"application/json" },
-      body: JSON.stringify({ message: msg, presenter: presenterId })
+    loading.style.display = 'block';
+
+    // Send request to create AI video
+    const res = await fetch(`${BACKEND_URL}/talk-video`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message, presenter })
     });
     const data = await res.json();
     const clipId = data.clip_id;
 
-    // Poll clip status
-    let url = null;
-    while(true){
-      const statusRes = await fetch(`${backend}/clip/${clipId}`);
-      const statusData = await statusRes.json();
-      if(statusData.status === "succeeded"){
-        url = statusData.url;
-        break;
-      } else if(statusData.status === "failed"){
-        throw new Error("AI video generation failed");
-      }
-      await new Promise(r => setTimeout(r, 2000));
+    // Poll until video is ready
+    let status = '';
+    let videoUrl = '';
+    while(status !== 'succeeded') {
+      await new Promise(r => setTimeout(r, 3000)); // wait 3s
+      const poll = await fetch(`${BACKEND_URL}/clip/${clipId}`);
+      const pollData = await poll.json();
+      status = pollData.status;
+      videoUrl = pollData.url || '';
     }
 
-    document.getElementById("status").innerText = "✅ Video ready!";
-    document.getElementById("video").src = url;
+    loading.style.display = 'none';
+    video.src = videoUrl;
+    responseText.value = message;
 
-  } catch(e){
-    console.error(e);
-    document.getElementById("status").innerText = "❌ Video failed. Using TTS instead.";
-    speakText(msg);
+  } catch(err) {
+    loading.style.display = 'none';
+    responseText.value = '❌ AI video generation failed';
+    console.error(err);
   }
-}
-
-/* ------------------------
-  Chat / Adaptive Logic
----------------------------*/
-let state={started:false,depth:0},currentLesson="";
-const chat=document.getElementById("chat");
-
-function addMsg(text,who='ai'){
-  const d=document.createElement('div');
-  d.className='msg '+(who==='ai'?'ai':'user');
-  d.innerHTML=text.replace(/\n/g,'<br/>');
-  chat.appendChild(d);
-  chat.scrollTop=chat.scrollHeight;
-}
-
-function startCourse(){
-  state.started=true;
-  state.depth=0;
-  chat.innerHTML='';
-  const t = document.getElementById("topic").value || 'your topic';
-  const l = document.getElementById("level").value;
-  const g = document.getElementById("goal").value || 'your goal';
-  addMsg(`👋 Hi! I’m your AI tutor.<br/>We’ll learn <b>${t}</b> at a <b>${l}</b> level, focused on <b>${g}</b>.<br/>Quick check: what do you already know about ${t}?`,'ai');
-}
-
-function send(){
-  if(!state.started) return;
-  const v=document.getElementById("input").value.trim();
-  if(!v) return;
-  addMsg(v,'user'); document.getElementById("input").value='';
-  let reply='';
-  const low=v.toLowerCase();
-  if(state.depth===0){
-    reply = low.includes('nothing')?'Perfect 👍 Start from basics':'Nice! Let’s move faster.';
-    state.depth++;
-  } else {
-    reply = 'Got it. Shall we go deeper?';
-  }
-  addMsg(reply,'ai');
-  currentLesson=reply;
-}
-
-/* Voice Input */
-let recognition;
-function startVoice(){
-  if(!('webkitSpeechRecognition' in window||'SpeechRecognition' in window)){
-    alert("Voice input not supported"); return;
-  }
-  const SpeechRecognition = window.SpeechRecognition||window.webkitSpeechRecognition;
-  recognition = new SpeechRecognition();
-  recognition.lang = "en-IN"; recognition.interimResults=false; recognition.maxAlternatives=1;
-  addMsg("🎤 Listening...","ai");
-  recognition.start();
-  recognition.onresult=function(event){
-    document.getElementById("input").value = event.results[0][0].transcript;
-    send();
-  };
-  recognition.onerror=function(){ addMsg("❌ Could not hear you. Try again.","ai"); }
-}
-
-/* Initialize */
-window.onload = ()=>{ };
+};
 </script>
 </body>
 </html>
