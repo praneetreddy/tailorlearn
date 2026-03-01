@@ -2,46 +2,65 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Mentoro AI Tutor</title>
+<title>TailorLearn – AI Tutor</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-  body { font-family: system-ui; background:#0f172a; color:#e5e7eb; margin:0; }
-  .wrap { max-width:920px; margin:24px auto; padding:16px; display:none; }
+  body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; background:#0f172a; color:#e5e7eb; margin:0; }
+  .wrap { max-width: 920px; margin: 24px auto; padding: 16px; display:none; }
   .card { background:#020617; border:1px solid #1f2937; border-radius:14px; padding:16px; margin-bottom:16px; }
-  h1,h2 { margin:0 0 10px; }
-  input, select, textarea, button { width:100%; padding:12px; margin-top:8px; border-radius:10px; border:1px solid #1f2937; background:#020617; color:#e5e7eb; }
+  h1,h2 { margin: 0 0 10px; }
+  label { font-size: 12px; color:#9ca3af; }
+  input, select, textarea, button {
+    width:100%; padding:12px; margin-top:8px; border-radius:10px;
+    border:1px solid #1f2937; background:#020617; color:#e5e7eb;
+  }
   button.primary { background:#2563eb; border:none; color:white; font-weight:bold; cursor:pointer; }
+  button.ghost { background:#020617; }
+  .row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:8px; }
   .chat { background:#020617; border:1px solid #1f2937; border-radius:14px; padding:12px; height:360px; overflow:auto; }
-  .msg.ai { color:#93c5fd; }
-  .msg.user { color:#a7f3d0; text-align:right; }
+  .msg { margin:10px 0; }
+  .ai { color:#93c5fd; }
+  .user { color:#a7f3d0; text-align:right; }
   .pill { display:inline-block; padding:6px 10px; border-radius:999px; background:#020617; border:1px solid #1f2937; margin-right:6px; font-size:12px;}
+  .footer { color:#6b7280; font-size:12px; margin-top:8px; }
+  #landing button.primary:hover { background:#1e40af; }
+  .avatar-container { text-align:center; margin-bottom:16px; }
+  .avatar-img { width:120px; height:120px; border-radius:50%; border:3px solid #2563eb; margin-bottom:8px; }
+  .loading { color:#facc15; font-weight:bold; }
 </style>
 </head>
 <body>
 
-<!-- Landing -->
-<div id="landing" style="min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; background:linear-gradient(135deg,#020617,#1e3a8a);">
+<!-- LANDING PAGE -->
+<div id="landing" style="min-height:100vh; background:linear-gradient(135deg,#020617,#020617 40%,#1e3a8a); color:#e5e7eb; display:flex; align-items:center; justify-content:center; padding:24px;">
   <div style="max-width:900px;text-align:center;">
-    <h1>Your Personal AI Tutor</h1>
-    <p>Tell us what you want to learn. I create interactive lessons in real-time.</p>
-    <button onclick="startLearning()" class="primary" style="max-width:260px;">🚀 Start Learning Free</button>
+    <h1 style="font-size:2.2rem;margin-bottom:12px;">Your Personal AI Tutor.<br/>Courses Made Just For You.</h1>
+    <p style="font-size:1.1rem;color:#c7d2fe;margin-bottom:20px;">
+      Tell us what you want to learn. We create interactive lessons, explain in your style, and adapt as you learn — in real time.
+    </p>
+    <div style="margin-bottom:24px;">
+      <span class="pill">Personalized</span>
+      <span class="pill">Interactive</span>
+      <span class="pill">AI-Powered</span>
+    </div>
+    <button onclick="startLearning()" style="background:#2563eb;color:white;padding:14px 24px;font-size:16px;border:none;border-radius:12px;cursor:pointer;width:100%;max-width:260px;">
+      🚀 Start Learning Free
+    </button>
+    <p style="font-size:12px;color:#9ca3af;margin-top:16px;">No signup • No ads • Learn your way</p>
   </div>
 </div>
 
-<!-- Main App -->
+<!-- MAIN APP -->
 <div class="wrap" id="app">
 
-  <button class="primary" onclick="openVoiceMode()">🎤 Talk to AI</button>
-
+  <!-- AI Video Teacher Section -->
   <div class="card">
-    <h1>🎓 TailorLearn — Interactive AI Tutor</h1>
-    <div class="row">
-      <div><label>Topic</label><input id="topic" placeholder="e.g., React, Python"/></div>
-      <div><label>Level</label><select id="level"><option>Beginner</option><option>Intermediate</option><option>Advanced</option></select></div>
-      <div><label>Goal</label><input id="goal" placeholder="Interview / Project"/></div>
-      <div><label>Language</label><select id="lang"><option>English</option><option>English + Hindi</option></select></div>
+    <div class="avatar-container">
+      <img src="https://i.ibb.co/fqk9yB0/ai-avatar-placeholder.png" alt="AI Tutor" id="ai-avatar" class="avatar-img">
     </div>
-    <button class="primary" onclick="startCourse()">Create My Course</button>
+    <div id="ai-video-text" class="loading">🎤 Loading AI Tutor...</div>
+    <video id="ai-video" width="100%" style="margin-top:12px; display:none;" controls autoplay></video>
+    <button class="primary" onclick="startTalking()" style="margin-top:12px;">🎤 Talk to AI</button>
   </div>
 
   <!-- Chat Section -->
@@ -49,155 +68,98 @@
     <h2>Live Lesson</h2>
     <div id="chat" class="chat"></div>
     <div class="row">
-      <textarea id="input" rows="2" placeholder="Ask a doubt…"></textarea>
-      <button onclick="sendMessage()">Send</button>
-      <button onclick="startVoice()">🎤 Speak</button>
+      <textarea id="input" rows="2" placeholder="Ask a doubt or answer the tutor…"></textarea>
+      <button class="ghost" onclick="send()">Send</button>
+      <button class="ghost" onclick="startVoice()">🎤 Speak</button>
     </div>
   </div>
 
 </div>
 
-<!-- Voice-only Video AI Mode -->
-<div id="voice-only-mode" style="display:none; min-height:100vh; background:#0f172a; color:#e5e7eb; padding:24px; text-align:center;">
-  <video id="ai-video-player" width="320" height="240" autoplay muted style="border-radius:12px;"></video>
-  <div id="ai-video-text" style="margin-top:12px; color:#c7d2fe;"></div>
-  <button onclick="exitVoiceMode()" style="margin-top:12px;">❌ Exit</button>
-</div>
-
 <script>
-let state={started:false, depth:0};
-let currentLesson="";
-let recognition;
-let voiceOnlyModeActive = false;
+let state = { started:false, depth:0 };
+let currentLesson = "";
 
-// --- Landing ---
+// ---------- Landing Page ----------
 function startLearning(){
   document.getElementById("landing").style.display="none";
   document.getElementById("app").style.display="block";
+  speakText("Hi! I am your AI tutor. Let's get started!");
 }
 
-// --- Course ---
-function startCourse(){
-  state.started=true;
-  state.depth=0;
-  document.getElementById("chat").innerHTML='';
-  const t=document.getElementById("topic").value||'your topic';
-  const l=document.getElementById("level").value;
-  const g=document.getElementById("goal").value||'your goal';
-  addMsg(`👋 Hi! I’m your AI tutor.<br/>We’ll learn <b>${t}</b> at <b>${l}</b> level, focused on <b>${g}</b>. What do you know about this?`, "ai");
-}
-
-// --- Chat ---
-function addMsg(text, who='ai'){
-  const d=document.createElement('div');
+// ---------- Chat Logic ----------
+function addMsg(text,who='ai'){
+  const d = document.createElement('div');
   d.className='msg '+(who==='ai'?'ai':'user');
   d.innerHTML=text.replace(/\n/g,'<br/>');
-  document.getElementById("chat").appendChild(d);
-  document.getElementById("chat").scrollTop=document.getElementById("chat").scrollHeight;
+  chat.appendChild(d);
+  chat.scrollTop = chat.scrollHeight;
 }
 
-async function sendMessage(){
-  const inputElem=document.getElementById("input");
-  const v=inputElem.value.trim();
-  if(!v) return;
-  addMsg(v,'user');
-  inputElem.value='';
-
-  try{
-    const res=await fetch("https://tailorlearn-backend.onrender.com/chat", {
-      method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ message:v, interview:document.getElementById("goal").value.toLowerCase().includes('interview') })
-    });
-    const data=await res.json();
-    addMsg(data.reply,'ai');
-    currentLesson=data.reply;
-  } catch(e){
-    addMsg("❌ Failed to connect to AI server.","ai");
-  }
+function start(){ 
+  state.started=true; state.depth=0; chat.innerHTML='';
+  const t = topic.value||'your topic';
+  const l = level.value;
+  const g = goal.value||'your goal';
+  addMsg(`👋 Hi! I’m your AI tutor.<br/>We’ll learn <b>${t}</b> at <b>${l}</b> level, focused on <b>${g}</b>.<br/>What do you already know?`,'ai');
 }
 
-// --- Voice recognition ---
+// ---------- Voice Input ----------
+let recognition;
 function startVoice(){
-  if(!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)){ alert("Voice not supported"); return; }
+  if(!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)){ alert("Voice input not supported"); return; }
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   recognition=new SpeechRecognition();
-  recognition.lang="en-IN"; recognition.interimResults=false; recognition.maxAlternatives=1;
+  recognition.lang="en-IN";
+  recognition.interimResults=false;
+  recognition.maxAlternatives=1;
   addMsg("🎤 Listening... Speak now","ai");
   recognition.start();
-  recognition.onresult = function(event){
-    document.getElementById("input").value = event.results[0][0].transcript;
-    sendMessage();
-  }
-  recognition.onerror=function(){ addMsg("❌ Could not hear you clearly.","ai"); }
+  recognition.onresult=function(e){ input.value=e.results[0][0].transcript; send(); }
+  recognition.onerror=function(){ addMsg("❌ Couldn't hear clearly. Try again.","ai"); }
 }
 
-// --- Voice-only AI Mode ---
-function openVoiceMode(){
-  voiceOnlyModeActive = true;
-  document.getElementById("app").style.display="none";
-  document.getElementById("voice-only-mode").style.display="block";
-  startContinuousVoiceAI();
+// ---------- TTS ----------
+function speakText(text){
+  if(!('speechSynthesis' in window)) return;
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang="en-US"; utter.rate=1;
+  speechSynthesis.speak(utter);
 }
 
-function exitVoiceMode(){
-  voiceOnlyModeActive = false;
-  if(recognition) recognition.stop();
-  document.getElementById("voice-only-mode").style.display="none";
-  document.getElementById("app").style.display="block";
-}
+// ---------- AI Video Talk ----------
+async function startTalking(){
+  const videoEl = document.getElementById("ai-video");
+  const textEl = document.getElementById("ai-video-text");
 
-async function startContinuousVoiceAI(){
-  if(!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)){ alert("Voice not supported"); return; }
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  recognition=new SpeechRecognition();
-  recognition.lang="en-IN"; recognition.interimResults=false; recognition.maxAlternatives=1;
+  // Show placeholder avatar immediately
+  document.getElementById("ai-avatar").style.display="block";
+  textEl.innerText="🎤 Hi! Preparing your AI tutor...";
+  speakText("Hi! I am your AI tutor. Preparing your video...");
 
-  recognition.start();
-  recognition.onresult = async function(event){
-    if(!voiceOnlyModeActive) return;
-    const voiceText = event.results[0][0].transcript;
-    addVoiceMsg(voiceText,'user');
-
-    try{
-      const chatRes=await fetch("https://tailorlearn-backend.onrender.com/chat", {
-        method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ message: voiceText })
-      });
-      const chatData = await chatRes.json();
-      addVoiceMsg(chatData.reply,"ai");
-
-      // Call D-ID for video
-      const videoRes=await fetch("https://tailorlearn-backend.onrender.com/talk-video", {
-        method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ text: chatData.reply, avatar:"male" })
-      });
-      const videoData = await videoRes.json();
-      const video=document.getElementById("ai-video-player");
-      if(videoData.videoUrl){
-        video.src = videoData.videoUrl;
-        document.getElementById("ai-video-text").innerText = chatData.reply;
-      } else {
-        document.getElementById("ai-video-text").innerText = "❌ AI video not available";
-      }
-
-    } catch(e){
-      addVoiceMsg("❌ Failed to connect to AI server.","ai");
+  try{
+    const resp = await fetch("https://tailorlearn-backend.onrender.com/talk-video", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ text:"Hi! I am your AI tutor.", avatar:"male" })
+    });
+    const data = await resp.json();
+    if(data.videoUrl){
+      videoEl.src=data.videoUrl;
+      videoEl.style.display="block";
+      textEl.innerText="✅ AI tutor is ready!";
+    } else {
+      textEl.innerText="❌ AI video not available";
     }
-
-    if(voiceOnlyModeActive) recognition.start();
-  };
-
-  recognition.onerror=function(){ 
-    addVoiceMsg("❌ Could not hear you. Retrying...","ai"); 
-    if(voiceOnlyModeActive) recognition.start(); 
+  }catch(e){
+    console.error(e);
+    textEl.innerText="❌ AI video not available";
   }
 }
 
-function addVoiceMsg(text,who='ai'){
-  const chatDiv=document.getElementById("ai-video-text");
-  const color = (who==='ai') ? '#93c5fd' : '#a7f3d0';
-  chatDiv.innerHTML+="<div style='margin:6px 0; color:"+color+"'>"+text+"</div>";
-}
+window.onload = ()=>{
+  // Any initialization logic
+};
 </script>
 </body>
 </html>
