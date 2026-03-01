@@ -10,10 +10,7 @@
   .card { background:#020617; border:1px solid #1f2937; border-radius:14px; padding:16px; margin-bottom:16px; }
   h1,h2 { margin: 0 0 10px; }
   label { font-size: 12px; color:#9ca3af; }
-  input, select, textarea, button {
-    width:100%; padding:12px; margin-top:8px; border-radius:10px;
-    border:1px solid #1f2937; background:#020617; color:#e5e7eb;
-  }
+  input, select, textarea, button { width:100%; padding:12px; margin-top:8px; border-radius:10px; border:1px solid #1f2937; background:#020617; color:#e5e7eb; }
   button.primary { background:#2563eb; border:none; color:white; font-weight:bold; cursor:pointer; }
   button.ghost { background:#020617; }
   .row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:8px; }
@@ -35,9 +32,7 @@
 <div id="landing" style="min-height:100vh; background:linear-gradient(135deg,#020617,#020617 40%,#1e3a8a); color:#e5e7eb; display:flex; align-items:center; justify-content:center; padding:24px;">
   <div style="max-width:900px;text-align:center;">
     <h1 style="font-size:2.2rem;margin-bottom:12px;">Your Personal AI Tutor.<br/>Courses Made Just For You.</h1>
-    <p style="font-size:1.1rem;color:#c7d2fe;margin-bottom:20px;">
-      Tell us what you want to learn. We create interactive lessons, explain in your style, and adapt as you learn — in real time.
-    </p>
+    <p style="font-size:1.1rem;color:#c7d2fe;margin-bottom:20px;">Tell us what you want to learn. We create interactive lessons, explain in your style, and adapt as you learn — in real time.</p>
     <div style="margin-bottom:24px;">
       <span class="pill">Personalized</span>
       <span class="pill">Interactive</span>
@@ -56,7 +51,7 @@
   <!-- AI Video Teacher Section -->
   <div class="card">
     <div class="avatar-container">
-      <img src="https://i.ibb.co/fqk9yB0/ai-avatar-placeholder.png" alt="AI Tutor" id="ai-avatar" class="avatar-img">
+      <img src="ai-avatar.png" alt="AI Tutor" id="ai-avatar" class="avatar-img">
     </div>
     <div id="ai-video-text" class="loading">🎤 Loading AI Tutor...</div>
     <video id="ai-video" width="100%" style="margin-top:12px; display:none;" controls autoplay></video>
@@ -96,14 +91,6 @@ function addMsg(text,who='ai'){
   chat.scrollTop = chat.scrollHeight;
 }
 
-function start(){ 
-  state.started=true; state.depth=0; chat.innerHTML='';
-  const t = topic.value||'your topic';
-  const l = level.value;
-  const g = goal.value||'your goal';
-  addMsg(`👋 Hi! I’m your AI tutor.<br/>We’ll learn <b>${t}</b> at <b>${l}</b> level, focused on <b>${g}</b>.<br/>What do you already know?`,'ai');
-}
-
 // ---------- Voice Input ----------
 let recognition;
 function startVoice(){
@@ -132,8 +119,6 @@ async function startTalking(){
   const videoEl = document.getElementById("ai-video");
   const textEl = document.getElementById("ai-video-text");
 
-  // Show placeholder avatar immediately
-  document.getElementById("ai-avatar").style.display="block";
   textEl.innerText="🎤 Hi! Preparing your AI tutor...";
   speakText("Hi! I am your AI tutor. Preparing your video...");
 
@@ -157,9 +142,7 @@ async function startTalking(){
   }
 }
 
-window.onload = ()=>{
-  // Any initialization logic
-};
+window.onload = ()=>{};
 </script>
 </body>
 </html>
